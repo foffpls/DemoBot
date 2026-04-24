@@ -127,7 +127,6 @@ async function showVacancies(ctx: Context): Promise<void> {
 bot.command("start", async (ctx) => {
   const locale = getLocale(ctx);
   await ctx.reply(t(locale, "welcome"), {
-    parse_mode: "Markdown",
     reply_markup: createMainMenu(locale)
   });
 });
@@ -142,7 +141,6 @@ bot.command("menu", async (ctx) => {
 async function showAbout(ctx: Context): Promise<void> {
   const locale = getLocale(ctx);
   await ctx.reply(t(locale, "aboutText"), {
-    parse_mode: "Markdown",
     reply_markup: new InlineKeyboard().url(t(locale, "aboutButton"), xerionLinks.website).row()
   });
 }
@@ -156,7 +154,7 @@ async function showContacts(ctx: Context): Promise<void> {
   const linkedin = profile.linkedin ?? xerionLinks.website;
 
   const message = [
-    `📌 *${t(locale, "contactsTitle")}*`,
+    `📌 ${t(locale, "contactsTitle")}`,
     "",
     t(locale, "contactsIntro"),
     "",
@@ -165,7 +163,7 @@ async function showContacts(ctx: Context): Promise<void> {
     `${t(locale, "contactLinkedin")}: ${linkedin}`
   ].join("\n");
 
-  await ctx.reply(message, { parse_mode: "Markdown", reply_markup: createMainMenu(locale) });
+  await ctx.reply(message, { reply_markup: createMainMenu(locale) });
 }
 
 async function showSocials(ctx: Context): Promise<void> {
@@ -182,8 +180,7 @@ async function showSocials(ctx: Context): Promise<void> {
   }
   socialsKeyboard.url("Website", xerionLinks.website);
 
-  await ctx.reply(`🌐 *${t(locale, "socialsTitle")}*\n\n${t(locale, "socialsIntro")}`, {
-    parse_mode: "Markdown",
+  await ctx.reply(`🌐 ${t(locale, "socialsTitle")}\n\n${t(locale, "socialsIntro")}`, {
     reply_markup: socialsKeyboard
   });
 }

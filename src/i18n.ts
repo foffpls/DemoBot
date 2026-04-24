@@ -5,7 +5,7 @@ type Dictionary = Record<string, string>;
 const translations: Record<SupportedLocale, Dictionary> = {
   uk: {
     welcome:
-      "Вітаємо в *Xerion*.\nIT-компанія в affiliate marketing technology.\nОберіть розділ, щоб швидко отримати головне.",
+      "Вітаємо в Xerion.\nIT-компанія в affiliate marketing technology.\nОберіть розділ, щоб швидко отримати головне.",
     menuAbout: "Про нас",
     menuJobs: "Відкриті вакансії",
     menuContacts: "Контакти",
@@ -37,7 +37,7 @@ const translations: Record<SupportedLocale, Dictionary> = {
   },
   en: {
     welcome:
-      "Welcome to *Xerion*.\nAn IT company in affiliate marketing technology.\nChoose a section to get the essentials instantly.",
+      "Welcome to Xerion.\nAn IT company in affiliate marketing technology.\nChoose a section to get the essentials instantly.",
     menuAbout: "About Us",
     menuJobs: "Open Vacancies",
     menuContacts: "Contacts",
