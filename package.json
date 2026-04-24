@@ -2,7 +2,7 @@
   "name": "!xerionbot",
   "version": "1.0.0",
   "description": "Telegram business-card bot for Xerion",
-  "main": "dist/bot.js",
+  "main": "index.ts",
   "scripts": {
     "dev": "tsx watch scripts/dev.ts",
     "build": "tsc -p tsconfig.json",
