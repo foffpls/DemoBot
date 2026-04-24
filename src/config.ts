@@ -3,6 +3,10 @@ import { z } from "zod";
 const envSchema = z.object({
   TELEGRAM_BOT_TOKEN: z.string().min(1),
   TELEGRAM_WEBHOOK_SECRET: z.string().min(12).optional(),
+  WEBHOOK_SECRET_REQUIRED: z
+    .enum(["true", "false"])
+    .default("true")
+    .transform((value) => value === "true"),
   XERION_BASE_URL: z.string().url().default("https://xerion.team"),
   XERION_CAREERS_PATH: z.string().default("/careers"),
   XERION_FALLBACK_VACANCY_PATHS: z

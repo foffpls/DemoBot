@@ -32,6 +32,7 @@ cp .env.example .env
 3. Fill required variables:
 - `TELEGRAM_BOT_TOKEN`
 - `TELEGRAM_WEBHOOK_SECRET` (recommended for production)
+- `WEBHOOK_SECRET_REQUIRED` (`true` by default, set `false` for simpler demo setup without secret header check)
 - `XERION_FALLBACK_VACANCY_PATHS` as comma-separated paths for guaranteed fallback cards
 
 ## Development

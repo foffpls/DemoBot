@@ -66,7 +66,8 @@ export default async function handler(req: Request | NodeLikeRequest, res?: Node
   }
 
   const secret = getHeaderValue(req, "x-telegram-bot-api-secret-token");
-  if (config.TELEGRAM_WEBHOOK_SECRET && secret !== config.TELEGRAM_WEBHOOK_SECRET) {
+  const shouldValidateSecret = config.WEBHOOK_SECRET_REQUIRED && Boolean(config.TELEGRAM_WEBHOOK_SECRET);
+  if (shouldValidateSecret && secret !== config.TELEGRAM_WEBHOOK_SECRET) {
     logger.warn("Webhook secret validation failed");
     if (isWebRequest(req)) {
       return new Response(JSON.stringify({ ok: false, message: "Unauthorized" }), { status: 401 });
