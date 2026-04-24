@@ -1,4 +1,4 @@
-import { Bot, InlineKeyboard } from "grammy";
+import { Bot, InlineKeyboard, Keyboard } from "grammy";
 import type { Context } from "grammy";
 
 import { getConfig } from "./config.js";
@@ -8,11 +8,6 @@ import { logger } from "./logger.js";
 import { getSiteProfile } from "./services/siteProfile.js";
 import { getVacancies } from "./services/vacancies.js";
 import type { SupportedLocale, Vacancy } from "./types.js";
-
-const MENU_ABOUT = "menu_about";
-const MENU_JOBS = "menu_jobs";
-const MENU_CONTACTS = "menu_contacts";
-const MENU_SOCIALS = "menu_socials";
 
 const config = getConfig();
 export const bot = new Bot(config.TELEGRAM_BOT_TOKEN);
@@ -25,15 +20,50 @@ function getLocale(ctx: Context): SupportedLocale {
   return resolveLocale(ctx.from?.language_code);
 }
 
-function createMainMenu(locale: SupportedLocale): InlineKeyboard {
-  return new InlineKeyboard()
-    .text(t(locale, "menuAbout"), MENU_ABOUT)
+function getMenuLabels(locale: SupportedLocale): Record<"about" | "jobs" | "contacts" | "socials", string> {
+  if (locale === "uk") {
+    return {
+      about: "🏢 Про нас",
+      jobs: "💼 Відкриті вакансії",
+      contacts: "📞 Контакти",
+      socials: "🌐 Соцмережі"
+    };
+  }
+
+  return {
+    about: "🏢 About Us",
+    jobs: "💼 Open Vacancies",
+    contacts: "📞 Contacts",
+    socials: "🌐 Social Media"
+  };
+}
+
+function createMainMenu(locale: SupportedLocale): Keyboard {
+  const labels = getMenuLabels(locale);
+  return new Keyboard()
+    .text(labels.about)
     .row()
-    .text(t(locale, "menuJobs"), MENU_JOBS)
+    .text(labels.jobs)
     .row()
-    .text(t(locale, "menuContacts"), MENU_CONTACTS)
+    .text(labels.contacts)
     .row()
-    .text(t(locale, "menuSocials"), MENU_SOCIALS);
+    .text(labels.socials)
+    .resized()
+    .persistent();
+}
+
+function resolveMenuAction(text: string): "about" | "jobs" | "contacts" | "socials" | null {
+  const normalized = text.trim();
+  const variants = [getMenuLabels("uk"), getMenuLabels("en")];
+
+  for (const labels of variants) {
+    if (normalized === labels.about) return "about";
+    if (normalized === labels.jobs) return "jobs";
+    if (normalized === labels.contacts) return "contacts";
+    if (normalized === labels.socials) return "socials";
+  }
+
+  return null;
 }
 
 function vacancyToMessage(locale: SupportedLocale, vacancy: Vacancy): string {
@@ -66,7 +96,7 @@ function vacancyToMessage(locale: SupportedLocale, vacancy: Vacancy): string {
 
 async function showVacancies(ctx: Context): Promise<void> {
   const locale = getLocale(ctx);
-  await ctx.reply(t(locale, "jobsLoading"));
+  await ctx.reply(t(locale, "jobsLoading"), { reply_markup: createMainMenu(locale) });
 
   const vacancies = await getVacancies(
     config.XERION_BASE_URL,
@@ -81,7 +111,7 @@ async function showVacancies(ctx: Context): Promise<void> {
     return;
   }
 
-  await ctx.reply(`✨ ${t(locale, "jobsHeader")}`);
+  await ctx.reply(`✨ ${t(locale, "jobsHeader")}`, { reply_markup: createMainMenu(locale) });
   for (const vacancy of vacancies) {
     const applyUrl = vacancy.url;
     await ctx.reply(vacancyToMessage(locale, vacancy), {
@@ -109,23 +139,16 @@ bot.command("menu", async (ctx) => {
   });
 });
 
-bot.callbackQuery(MENU_ABOUT, async (ctx) => {
+async function showAbout(ctx: Context): Promise<void> {
   const locale = getLocale(ctx);
-  await ctx.answerCallbackQuery();
   await ctx.reply(t(locale, "aboutText"), {
     parse_mode: "Markdown",
-    reply_markup: new InlineKeyboard().url(t(locale, "aboutButton"), xerionLinks.website)
+    reply_markup: new InlineKeyboard().url(t(locale, "aboutButton"), xerionLinks.website).row()
   });
-});
+}
 
-bot.callbackQuery(MENU_JOBS, async (ctx) => {
-  await ctx.answerCallbackQuery();
-  await showVacancies(ctx);
-});
-
-bot.callbackQuery(MENU_CONTACTS, async (ctx) => {
+async function showContacts(ctx: Context): Promise<void> {
   const locale = getLocale(ctx);
-  await ctx.answerCallbackQuery();
 
   const profile = await getSiteProfile(config.XERION_BASE_URL, config.CACHE_TTL_SECONDS);
   const email = profile.email ?? xerionContacts.email;
@@ -142,12 +165,11 @@ bot.callbackQuery(MENU_CONTACTS, async (ctx) => {
     `${t(locale, "contactLinkedin")}: ${linkedin}`
   ].join("\n");
 
-  await ctx.reply(message, { parse_mode: "Markdown" });
-});
+  await ctx.reply(message, { parse_mode: "Markdown", reply_markup: createMainMenu(locale) });
+}
 
-bot.callbackQuery(MENU_SOCIALS, async (ctx) => {
+async function showSocials(ctx: Context): Promise<void> {
   const locale = getLocale(ctx);
-  await ctx.answerCallbackQuery();
 
   const profile = await getSiteProfile(config.XERION_BASE_URL, config.CACHE_TTL_SECONDS);
   const socialsKeyboard = new InlineKeyboard();
@@ -164,10 +186,29 @@ bot.callbackQuery(MENU_SOCIALS, async (ctx) => {
     parse_mode: "Markdown",
     reply_markup: socialsKeyboard
   });
-});
+}
 
 bot.on("message:text", async (ctx) => {
   const locale = getLocale(ctx);
+  const action = resolveMenuAction(ctx.message.text);
+
+  if (action === "about") {
+    await showAbout(ctx);
+    return;
+  }
+  if (action === "jobs") {
+    await showVacancies(ctx);
+    return;
+  }
+  if (action === "contacts") {
+    await showContacts(ctx);
+    return;
+  }
+  if (action === "socials") {
+    await showSocials(ctx);
+    return;
+  }
+
   await ctx.reply(t(locale, "unknown"), {
     reply_markup: createMainMenu(locale)
   });
