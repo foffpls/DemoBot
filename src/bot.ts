@@ -187,7 +187,17 @@ async function showSocials(ctx: Context): Promise<void> {
 
 bot.on("message:text", async (ctx) => {
   const locale = getLocale(ctx);
-  const action = resolveMenuAction(ctx.message.text);
+  const text = ctx.message.text.trim();
+  const lowered = text.toLowerCase();
+
+  if (lowered === "/start" || lowered.startsWith("/start@")) {
+    await ctx.reply(t(locale, "welcome"), {
+      reply_markup: createMainMenu(locale)
+    });
+    return;
+  }
+
+  const action = resolveMenuAction(text);
 
   if (action === "about") {
     await showAbout(ctx);
